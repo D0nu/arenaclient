@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
-import ThemeToggle from "../components/ThemeToggle";
-import SettingsModal from "../components/SettingsModal";
+import ThemeToggle from "../Components/ThemeToggle";
+import SettingsModal from "../Components/SettingsModal";
 import { motion } from "framer-motion";
 
 export default function Profile() {
