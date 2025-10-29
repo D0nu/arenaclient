@@ -14,7 +14,7 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
     lastSpawnTime: 0,
     lastOrbSpawnTime: 0,
     lastWeaponSpawnTime: 0,
-    score: 0,
+    score: userScore || 0, // Initialize with userScore if provided
     kills: 0,
     deaths: 0,
     combo: 0,
@@ -24,10 +24,7 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => {
-      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-             window.innerWidth <= 768;
-    };
+    const checkMobile = () => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
     setIsMobile(checkMobile());
     const handleResize = () => setIsMobile(checkMobile());
     window.addEventListener('resize', handleResize);
@@ -37,8 +34,9 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
+    // Adjust canvas size to fit screen, ensuring no overlap
     canvas.width = isMobile ? Math.min(800, window.innerWidth - 20) : 800;
-    canvas.height = isMobile ? Math.min(600, window.innerHeight - 200) : 600;
+    canvas.height = isMobile ? Math.min(600, window.innerHeight - (isMobile ? 250 : 150)) : 600; // Adjusted for UI overlap
 
     const game = gameRef.current;
     let animationId;
@@ -110,7 +108,7 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
       attackCooldown: 500,
       lastSpell: 0,
       spellCooldown: 3000,
-      facing: 'down',
+      facing: 'right', // Adjusted to face right for right-side enemies
       damageBoost: 1,
       speedBoost: 1,
       boostEndTime: 0,
@@ -208,7 +206,7 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
       game.lastSpawnTime = Date.now();
       game.lastOrbSpawnTime = Date.now();
       game.lastWeaponSpawnTime = Date.now();
-      game.score = 0;
+      game.score = userScore || 0;
       game.kills = 0;
       game.deaths = 0;
       game.combo = 0;
@@ -223,7 +221,7 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
     };
 
     const getMaxEnemies = () => {
-      return timeLeft > 60 ? 3 : 6;
+      return Math.min(3, Math.max(2, Math.floor((120 - timeLeft) / 30))); // 2-3 enemies, increasing with time
     };
 
     const getSpawnRate = () => {
@@ -236,8 +234,8 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = currentMap.ground;
       ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
-      ctx.fillStyle = '#8b4513';
       currentMap.obstacles.forEach(obstacle => {
+        ctx.fillStyle = '#8b4513';
         ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
       });
       ctx.fillStyle = '#ffffff';
@@ -249,27 +247,25 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
 
     const drawHealthBar = (x, y, health, maxHealth, width = 30, height = 5) => {
       ctx.fillStyle = '#ff0000';
-      ctx.fillRect(x - width / 2, y - height, width, height);
+      ctx.fillRect(x - width / 2, y - height - 10, width, height);
       ctx.fillStyle = '#00ff00';
-      ctx.fillRect(x - width / 2, y - height, width * (health / maxHealth), height);
+      ctx.fillRect(x - width / 2, y - height - 10, width * (health / maxHealth), height);
       ctx.strokeStyle = '#000000';
-      ctx.strokeRect(x - width / 2, y - height, width, height);
+      ctx.strokeRect(x - width / 2, y - height - 10, width, height);
     };
 
     const drawStickman = (ctx, x, y, width, height, color, facing, weapon, isMoving, isAttacking, isBoss = false) => {
       const headRadius = isBoss ? width / 3 : width / 4;
       const bodyLength = isBoss ? height * 0.5 : height / 2;
       const armLength = isBoss ? width * 0.5 : width / 2.5;
-      const legLength = isBoss ? height * 0.2 : height / 4; // Shorter legs for standing
+      const legLength = isBoss ? height * 0.2 : height / 4;
       const animationFrame = isMoving ? Math.sin(Date.now() / 100) * 0.2 : 0;
 
-      // Head
       ctx.fillStyle = color;
       ctx.beginPath();
       ctx.arc(x, y - bodyLength / 2 - headRadius, headRadius, 0, Math.PI * 2);
       ctx.fill();
 
-      // Body (vertical, facing down)
       ctx.strokeStyle = color;
       ctx.lineWidth = isBoss ? 4 : 2;
       ctx.beginPath();
@@ -277,8 +273,7 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
       ctx.lineTo(x, y + bodyLength / 2);
       ctx.stroke();
 
-      // Arms (neutral downward position, slight animation)
-      const armAngle = isAttacking ? -0.3 : (animationFrame * 0.2 - 0.5); // Downward facing with attack lift
+      const armAngle = isAttacking ? -0.3 : (animationFrame * 0.2 - 0.5);
       ctx.beginPath();
       ctx.moveTo(x, y - bodyLength / 4);
       ctx.lineTo(x + armLength * Math.cos(armAngle), y - bodyLength / 4 + armLength * Math.sin(armAngle));
@@ -288,7 +283,6 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
       ctx.lineTo(x - armLength * Math.cos(armAngle), y - bodyLength / 4 + armLength * Math.sin(armAngle));
       ctx.stroke();
 
-      // Legs (vertical, shorter for standing)
       ctx.beginPath();
       ctx.moveTo(x, y + bodyLength / 2);
       ctx.lineTo(x, y + bodyLength / 2 + legLength);
@@ -298,7 +292,6 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
       ctx.lineTo(x, y + bodyLength / 2 + legLength);
       ctx.stroke();
 
-      // Weapon (adjusted for downward facing)
       ctx.strokeStyle = '#a8a29e';
       ctx.lineWidth = isBoss ? 5 : 3;
       if (weapon === 'sword' || weapon === 'knight') {
@@ -335,20 +328,9 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
       const p = game.player;
       if (!p) return;
       const isMoving = keys['ArrowUp'] || keys['KeyW'] || keys['ArrowDown'] || keys['KeyS'] || keys['ArrowLeft'] || keys['KeyA'] || keys['ArrowRight'] || keys['KeyD'];
-      const isAttacking = mouse.pressed && Date.now() - p.lastAttack < p.attackCooldown;
+      const isAttacking = mouse.pressed && Date.now() - p.lastAttack < (weapons[p.weapon] || weapons.fist).cooldown;
 
-      drawStickman(
-        ctx,
-        p.x,
-        p.y,
-        p.width,
-        p.height,
-        p.invulnerable > 0 || p.invincibilityEndTime > Date.now() ? '#60a5fa' : '#4f46e5',
-        p.facing,
-        p.weapon,
-        isMoving,
-        isAttacking
-      );
+      drawStickman(ctx, p.x, p.y, p.width, p.height, p.invulnerable > 0 || p.invincibilityEndTime > Date.now() ? '#60a5fa' : '#4f46e5', p.facing, p.weapon, isMoving, isAttacking);
       drawHealthBar(p.x, p.y - p.height / 2 - 10, p.health, p.maxHealth, p.width);
     };
 
@@ -369,14 +351,14 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
           isAttacking,
           enemy.isBoss
         );
-        drawHealthBar(enemy.x, enemy.y - height / 2 - 10, enemy.health, enemy.maxHealth, enemy.width);
+        drawHealthBar(enemy.x, enemy.y - enemy.height / 2 - 10, enemy.health, enemy.maxHealth, enemy.width); // Fixed height reference
       });
     };
 
     const drawWeapons = () => {
       game.weapons.forEach(weapon => {
         ctx.save();
-        ctx.translate(weapon.x, weapon.y + 10); // Shift down to ground level
+        ctx.translate(weapon.x, weapon.y + 10);
         ctx.strokeStyle = '#a8a29e';
         ctx.fillStyle = '#a8a29e';
         ctx.lineWidth = 3;
@@ -458,7 +440,7 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
     };
 
     const drawHUD = () => {
-      const displayScore = Math.max(0, game.score); // Cap score at 0
+      const displayScore = Math.max(0, game.score);
       ctx.fillStyle = '#FFFFFF';
       ctx.font = isMobile ? 'bold 14px Arial' : 'bold 16px Arial';
       ctx.fillText(`Score: ${displayScore}`, 10, isMobile ? 20 : 30);
@@ -526,22 +508,15 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
       }
 
       const typeConfig = enemyTypes[enemyType] || enemyTypes.swordsman;
-      const side = Math.floor(Math.random() * 4);
-      let x, y;
-      switch (side) {
-        case 0: x = Math.random() * canvas.width; y = -typeConfig.height; break;
-        case 1: x = canvas.width + typeConfig.width; y = Math.random() * canvas.height; break;
-        case 2: x = Math.random() * canvas.width; y = canvas.height + typeConfig.height; break;
-        case 3: x = -typeConfig.width; y = Math.random() * canvas.height; break;
-      }
-
+      // Spawn only from the right side
+      const y = Math.random() * (canvas.height - typeConfig.height);
       game.enemies.push({
         ...typeConfig,
-        x,
+        x: canvas.width + typeConfig.width, // Start just off the right edge
         y,
         type: enemyType,
         lastAttack: 0,
-        facing: 'down',
+        facing: 'left', // Face left as they move toward player
       });
     };
 
@@ -691,21 +666,14 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
       const p = game.player;
       if (!p) return;
 
-      if (p.invulnerable > 0) {
-        p.invulnerable--;
-      }
+      if (p.invulnerable > 0) p.invulnerable--;
+      if (p.invincibilityEndTime > Date.now()) p.invulnerable = 60;
 
       let dx = 0, dy = 0;
       if (keys['ArrowUp'] || keys['KeyW']) dy -= 1;
       if (keys['ArrowDown'] || keys['KeyS']) dy += 1;
-      if (keys['ArrowLeft'] || keys['KeyA']) { 
-        dx -= 1;
-        p.facing = 'down'; // Simplified to always face down
-      }
-      if (keys['ArrowRight'] || keys['KeyD']) { 
-        dx += 1;
-        p.facing = 'down'; // Simplified to always face down
-      }
+      if (keys['ArrowLeft'] || keys['KeyA']) dx -= 1;
+      if (keys['ArrowRight'] || keys['KeyD']) dx += 1;
 
       if (dx !== 0 && dy !== 0) {
         dx *= 0.707;
@@ -718,8 +686,10 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
       p.x = Math.max(p.width / 2, Math.min(canvas.width - p.width / 2, p.x));
       p.y = Math.max(p.height / 2, Math.min(canvas.height - p.height / 2, p.y));
 
-      if (mouse.pressed) {
-        playerAttack();
+      if (mouse.pressed) playerAttack();
+      if (p.boostEndTime < Date.now()) {
+        p.damageBoost = 1;
+        p.speedBoost = 1;
       }
     };
 
@@ -732,13 +702,11 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
         const dy = p.y - enemy.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        enemy.facing = 'down'; // Simplified to always face down
-        if (enemy.type === 'archer' && distance < enemy.attackRange * 1.5) {
-          enemy.x -= (dx / distance) * enemy.speed;
-          enemy.y -= (dy / distance) * enemy.speed;
-        } else if (distance > enemy.attackRange) {
-          enemy.x += (dx / distance) * enemy.speed;
-          enemy.y += (dy / distance) * enemy.speed;
+        enemy.facing = dx > 0 ? 'left' : 'right'; // Face toward player
+        if (distance > enemy.attackRange) {
+          enemy.x -= (dx / distance) * enemy.speed; // Move left toward player
+        } else {
+          enemyAttack(enemy, index);
         }
       });
     };
@@ -751,6 +719,40 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
         if (projectile.x < -projectile.radius || projectile.x > canvas.width + projectile.radius ||
             projectile.y < -projectile.radius || projectile.y > canvas.height + projectile.radius) {
           game.projectiles.splice(projIndex, 1);
+        } else if (projectile.fromPlayer) {
+          for (let i = game.enemies.length - 1; i >= 0; i--) {
+            const enemy = game.enemies[i];
+            const dx = enemy.x - projectile.x;
+            const dy = enemy.y - projectile.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < enemy.width / 2 + projectile.radius) {
+              enemy.health -= projectile.damage;
+              game.particles.push({
+                x: enemy.x,
+                y: enemy.y - 10,
+                life: 60,
+                maxLife: 60,
+                type: 'damage',
+                value: projectile.damage.toFixed(1),
+                vx: (Math.random() - 0.5) * 2,
+                vy: -2,
+              });
+              if (enemy.health <= 0) handleEnemyDeath(enemy, i);
+              game.projectiles.splice(projIndex, 1);
+              break;
+            }
+          }
+        } else {
+          const p = game.player;
+          const dx = p.x - projectile.x;
+          const dy = p.y - projectile.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < p.width / 2 + projectile.radius && p.invulnerable === 0) {
+            p.health -= projectile.damage;
+            p.invulnerable = 60;
+            if (p.health <= 0) handlePlayerDeath();
+            game.projectiles.splice(projIndex, 1);
+          }
         }
       });
     };
@@ -760,9 +762,7 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
         particle.x += particle.vx;
         particle.y += particle.vy;
         particle.life--;
-        if (particle.life <= 0) {
-          game.particles.splice(index, 1);
-        }
+        if (particle.life <= 0) game.particles.splice(index, 1);
       });
     };
 
@@ -864,9 +864,7 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
           if (p.invulnerable === 0 && p.invincibilityEndTime < now) {
             p.health -= enemy.attackDamage;
             p.invulnerable = 60;
-            if (p.health <= 0) {
-              handlePlayerDeath();
-            }
+            if (p.health <= 0) handlePlayerDeath();
           }
         }
       }
@@ -898,7 +896,7 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
     };
 
     const handlePlayerDeath = () => {
-      game.score = Math.max(0, game.score - 3); // Cap score at 0
+      game.score = Math.max(0, game.score - 3);
       game.deaths += 1;
       game.combo = 0;
       onScoreSubmit?.(-3);
@@ -943,13 +941,9 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
       keys[e.code] = true;
       if (e.code === 'Space') {
         e.preventDefault();
-        if (game.state === 'idle' || game.state === 'time-up') {
-          initGame();
-        }
+        if (game.state === 'idle' || game.state === 'time-up') initGame();
       }
-      if (e.code === 'KeyQ') {
-        castSpell();
-      }
+      if (e.code === 'KeyQ') castSpell();
     };
 
     const handleKeyUp = (e) => {
@@ -992,7 +986,7 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
       canvas.removeEventListener('mouseup', handleMouseUp);
       cancelAnimationFrame(animationId);
     };
-  }, [timeLeft, onScoreSubmit, isMobile]);
+  }, [timeLeft, onScoreSubmit, isMobile, userScore]);
 
   return (
     <div className="flex flex-col items-center">
@@ -1009,7 +1003,7 @@ const Conquest = ({ timeLeft, onScoreSubmit, userScore }) => {
         <p><strong>Medieval Conquest</strong> - Conquer the realms!</p>
         <p>WASD: Move • Q: Spell • Click: Attack • Collect weapons</p>
         <p>Kills: +1 (60s) +2 (≤60s) +10 (boss) • Death: -3 points • Combo: +10% per kill</p>
-        <p>Pick up weapons to fight! Weapons have limited uses.</p>
+        <p>Pick up weapons to fight! Enemies come from the right.</p>
       </div>
     </div>
   );

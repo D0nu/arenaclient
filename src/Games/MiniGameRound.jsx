@@ -1,8 +1,8 @@
 import React from 'react';
-import BasketballGame from './miniGames/BaketBall';
-import DartGame from './miniGames/Dart';
-import SurvivorArena from './miniGames/SurvivorArena';
-import Conquest from './miniGames/Conquest';
+import BasketballGame from './miniGames/Baketball.jsx';
+import DartGame from './miniGames/Dart.jsx';
+import SurvivorArena from './miniGames/SurvivorArena.jsx';
+import Conquest from './miniGames/Conquest.jsx';
 // Import other games as you create them:
 // import MemoryGame from './games/MemoryGame';
 // import TriviaGame from './games/TriviaGame';
