@@ -1,11 +1,37 @@
-// AuthContext.jsx - Add detailed debugging
+// AuthContext.jsx - Environment-aware base URL
 import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 
 const AuthContext = createContext();
 
+// ✅ Environment-aware base URL configuration
+const getBaseURL = () => {
+  const baseURL = import.meta.env.VITE_API_URL;
+  console.log("🌍 Environment Configuration:", {
+    VITE_API_URL: baseURL,
+    NODE_ENV: import.meta.env.MODE,
+    isProduction: import.meta.env.PROD,
+    isDevelopment: import.meta.env.DEV
+  });
+
+  if (!baseURL) {
+    console.warn("⚠️ VITE_API_URL not set, falling back to localhost");
+    return "http://localhost:5001/api";
+  }
+
+  // Ensure baseURL includes /api if not already present
+  if (baseURL.includes('/api')) {
+    return baseURL;
+  } else {
+    return `${baseURL}/api`;
+  }
+};
+
+// ✅ Set axios defaults with environment-aware URL
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = "http://localhost:5001/api";
+axios.defaults.baseURL = getBaseURL();
+
+console.log("🚀 Axios configured with baseURL:", axios.defaults.baseURL);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -18,7 +44,8 @@ export function AuthProvider({ children }) {
       user: user ? `✅ ${user.email}` : '❌ null',
       token: token ? `✅ ${token.substring(0, 10)}...` : '❌ null',
       isAuthenticated: !!user && !!token,
-      loading
+      loading,
+      baseURL: axios.defaults.baseURL
     });
   }, [user, token, loading]);
 
@@ -49,6 +76,7 @@ export function AuthProvider({ children }) {
   const fetchUser = async () => {
     try {
       console.log("🔄 Starting fetchUser...");
+      console.log("📡 API Base URL:", axios.defaults.baseURL);
       
       const storedToken = getStoredToken();
       console.log("📦 Stored token:", storedToken ? `Found (${storedToken.length} chars)` : 'Not found');
@@ -73,6 +101,11 @@ export function AuthProvider({ children }) {
       
     } catch (error) {
       console.warn("❌ Not authenticated:", error.response?.data?.message || error.message);
+      console.error("📡 Request details:", {
+        url: `${axios.defaults.baseURL}/auth/me`,
+        method: 'GET',
+        error: error.message
+      });
       setUser(null);
       setToken(null);
       clearStoredToken();
@@ -88,34 +121,49 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     console.log("🔐 Starting login...");
-    const { data } = await axios.post("/auth/login", { email, password });
-    setUser(data.user);
-    setToken(data.token);
+    console.log("📡 API Base URL:", axios.defaults.baseURL);
     
-    if (data.token) {
-      storeToken(data.token);
+    try {
+      const { data } = await axios.post("/auth/login", { email, password });
+      setUser(data.user);
+      setToken(data.token);
+      
+      if (data.token) {
+        storeToken(data.token);
+      }
+      
+      console.log("✅ Login completed");
+      return data;
+    } catch (error) {
+      console.error("❌ Login failed:", error.response?.data || error.message);
+      throw error;
     }
-    
-    console.log("✅ Login completed");
-    return data;
   };
 
   const signup = async (userData) => {
     console.log("👤 Starting signup...");
-    const { data } = await axios.post("/auth/signup", userData);
-    setUser(data.user);
-    setToken(data.token);
+    console.log("📡 API Base URL:", axios.defaults.baseURL);
     
-    if (data.token) {
-      storeToken(data.token);
+    try {
+      const { data } = await axios.post("/auth/signup", userData);
+      setUser(data.user);
+      setToken(data.token);
+      
+      if (data.token) {
+        storeToken(data.token);
+      }
+      
+      console.log("✅ Signup completed");
+      return data;
+    } catch (error) {
+      console.error("❌ Signup failed:", error.response?.data || error.message);
+      throw error;
     }
-    
-    console.log("✅ Signup completed");
-    return data;
   };
 
   const logout = async () => {
     try {
+      console.log("📡 API Base URL for logout:", axios.defaults.baseURL);
       await axios.post("/auth/logout");
     } catch (error) {
       console.error("Logout error:", error);
@@ -152,6 +200,8 @@ export function AuthProvider({ children }) {
         refreshUser: fetchUser,
         updateUserBalance,
         updateUserData,
+        // ✅ Add baseURL for debugging
+        baseURL: axios.defaults.baseURL
       }}
     >
       {children}

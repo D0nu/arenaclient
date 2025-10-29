@@ -19,8 +19,10 @@
       "dest": "/index.html"
     }
   ],
-  "env": {
-    "VITE_API_URL": "http://localhost:5001",
-    "VITE_SOCKET_URL": "http://localhost:5001"
+  "build": {
+    "env": {
+      "VITE_API_URL": "https://arena-api-g8d9.onrender.com",
+      "VITE_SOCKET_URL": "https://arena-api-g8d9.onrender.com"
+    }
   }
 }

@@ -65,7 +65,7 @@ export const SocketProvider = ({ children }) => {
     console.log("🚀 Creating new socket connection for:", user.email);
 
     const socketUrl = process.env.NODE_ENV === "production"
-      ? "https://your-production-domain.com"
+      ? "https://arena-api-g8d9.onrender.com/"
       : "http://localhost:5001";
 
     const newSocket = io(socketUrl, {
