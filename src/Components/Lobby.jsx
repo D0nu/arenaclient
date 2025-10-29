@@ -3,14 +3,15 @@ import { useSocket } from '../Context/SocketContext';
 import { useAuth } from '../Context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import BackgroundElements from './LobbyComponents/BackgroundElements';
-import JoinGamePopup from './LobbyComponents/JoinGamePopup';
-import LobbyHeader from './LobbyComponents/LobbyHeader';
-import ActionButtons from './LobbyComponents/ActionButtons';
-import CreateGamePopup from './LobbyComponents/CreateGamePopup';
-import UserStatus from './LobbyComponents/UserStatus';
-import StatsFooter from './LobbyComponents/StatsFooter';
-import NotificationBanner from './LobbyComponents/NotificationBanner';
-import LoadingState from './LobbyComponents/LoadingState';
+import JoinGamePopup from './LobbyComponents/JoinGamePopUp.jsx';
+
+import LobbyHeader from './LobbyComponents/LobbyHeader.jsx';
+import ActionButtons from './LobbyComponents/ActionButtons.jsx';
+import CreateGamePopup from './LobbyComponents/CreateGamePopup.jsx';
+import UserStatus from './LobbyComponents/UserStatus.jsx';
+import StatsFooter from './LobbyComponents/StatsFooter.jsx';
+import NotificationBanner from './LobbyComponents/NotificationBanner.jsx';
+import LoadingState from './LobbyComponents/LoadingState.jsx';
 
 const Lobby = ({ onJoinGame, setCurrentView }) => {
   const navigate = useNavigate();
