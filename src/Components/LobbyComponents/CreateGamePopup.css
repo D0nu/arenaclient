@@ -1,0 +1,290 @@
+/* CreateGamePopup.css */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.popup-container {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 2px solid #00ffff;
+  border-radius: 20px;
+  padding: 30px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+  animation: popIn 0.3s ease-out;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.popup-header {
+  text-align: center;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #2a2a4a;
+  padding-bottom: 20px;
+}
+
+.popup-title {
+  color: #00ffff;
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.balance-display {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+}
+
+.balance-label {
+  color: #8892b0;
+}
+
+.balance-amount {
+  color: #00ff88;
+  font-weight: bold;
+  background: rgba(0, 255, 136, 0.1);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid #00ff88;
+}
+
+.wager-section {
+  margin-bottom: 30px;
+}
+
+.section-title {
+  color: #ffffff;
+  font-size: 18px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.wager-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.wager-option {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid #2a2a4a;
+  border-radius: 15px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #ffffff;
+}
+
+.wager-option:hover {
+  border-color: #00ffff;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 255, 255, 0.2);
+}
+
+.wager-option.active {
+  border-color: #00ff88;
+  background: rgba(0, 255, 136, 0.1);
+  transform: translateY(-2px);
+}
+
+.option-icon {
+  font-size: 24px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.option-text {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.option-subtext {
+  font-size: 12px;
+  color: #8892b0;
+  display: block;
+}
+
+.wager-input-container {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 20px;
+  border: 1px solid #2a2a4a;
+}
+
+.input-label {
+  color: #ffffff;
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid #00ffff;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.wager-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  padding: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  outline: none;
+}
+
+.wager-input::placeholder {
+  color: #8892b0;
+}
+
+.input-suffix {
+  background: #00ffff;
+  color: #1a1a2e;
+  padding: 15px 20px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.wager-hints {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.hint {
+  font-size: 12px;
+  color: #8892b0;
+}
+
+.validation-message {
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.validation-message.error {
+  background: rgba(255, 0, 0, 0.1);
+  color: #ff4444;
+  border: 1px solid #ff4444;
+}
+
+.validation-message.success {
+  background: rgba(0, 255, 136, 0.1);
+  color: #00ff88;
+  border: 1px solid #00ff88;
+}
+
+.popup-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.btn-primary, .btn-secondary {
+  flex: 1;
+  padding: 15px 25px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+  color: #1a1a2e;
+}
+
+.btn-primary:hover:not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+}
+
+.btn-primary.disabled {
+  background: #2a2a4a;
+  color: #8892b0;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 2px solid #2a2a4a;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #00ffff;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid #1a1a2e;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .popup-container {
+    padding: 20px;
+    margin: 10px;
+  }
+  
+  .wager-options {
+    grid-template-columns: 1fr;
+  }
+  
+  .popup-actions {
+    flex-direction: column;
+  }
+}
