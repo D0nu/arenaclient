@@ -307,7 +307,7 @@ const DartGame = ({ timeLeft = 180, roundStarted = true, onScoreSubmit }) => {
     if (target.isNegative) {
       points = -1; // FIXED: Changed from -3 to -1
     } else {
-      points = timeLeft <= 60 ? 3 : 2; // FIXED: Properly check time for +3 points
+      points = timeLeft < 60 ? 3 : 2; // FIXED: Properly check time for +3 points
     }
     
     setScore(prev => {
