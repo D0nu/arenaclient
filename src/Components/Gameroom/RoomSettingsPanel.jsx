@@ -34,6 +34,23 @@ const RoomSettingsPanel = ({
     setShowSettings(true);
   };
 
+  // ✅ SIMPLE STATUS DISPLAY - Trust the backend room.status
+  const getStatusDisplay = () => {
+    switch (room.status) {
+      case 'ready-to-start':
+        return { text: 'Ready to Start', color: 'text-yellow-400' };
+      case 'in-game':
+        return { text: 'Game in Progress', color: 'text-blue-400' };
+      case 'starting':
+        return { text: 'Starting Game', color: 'text-blue-400' };
+      case 'waiting':
+      default:
+        return { text: 'Waiting', color: 'text-green-400' };
+    }
+  };
+
+  const statusInfo = getStatusDisplay();
+
   return (
     <div className="lg:col-span-1 space-y-6">
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border-2 border-purple-500">
@@ -93,13 +110,11 @@ const RoomSettingsPanel = ({
               {room.players?.filter(p => p.isReady).length || 0}/{room.players?.length || 0}
             </span>
           </div>
+          {/* ✅ SIMPLE STATUS DISPLAY - Trust backend */}
           <div className="flex justify-between">
             <span>Status:</span>
-            <span className={`${
-              room.status === 'ready-to-start' ? 'text-green-400' : 
-              room.status === 'starting' ? 'text-blue-400' : 'text-yellow-400'
-            } capitalize`}>
-              {room.status?.replace(/-/g, ' ') || 'unknown'}
+            <span className={statusInfo.color}>
+              {statusInfo.text}
             </span>
           </div>
         </div>

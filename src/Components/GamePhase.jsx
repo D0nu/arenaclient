@@ -8,8 +8,7 @@ import QuestionRound from '../Games/QuestionRound';
 import MiniGameRound from '../Games/MiniGameRound';
 import RoundResults from './RoundResults';
 import GameLoading from './GameLoading';
-import TopicSelection from './TopicSelection';
-import GameSelection from './GameSelection';
+
 
 const GamePhase = ({ room, gameState: initialGameState, onQuitGame }) => {
   const { socket } = useSocket();
@@ -21,20 +20,47 @@ const GamePhase = ({ room, gameState: initialGameState, onQuitGame }) => {
   const [rematching, setRematching] = useState(false);
   const [userScore, setUserScore] = useState(0);
   const [gameState, setGameState] = useState(initialGameState);
-  const [currentPlayerView, setCurrentPlayerView] = useState(0); // For viewer mode navigation
+  const [currentPlayerView, setCurrentPlayerView] = useState(0);
 
-  // Game mode detection
+   const [autoStartAttempted, setAutoStartAttempted] = useState(false);
+  const [lastAutoStartPhase, setLastAutoStartPhase] = useState('');
+  
+
   const gameMode = room?.settings?.mode || 'question-vs-game';
   const isQuestionVsGame = gameMode === 'question-vs-game';
   const isQuestionOnly = gameMode === 'question-vs-question';
   const isGameOnly = gameMode === 'game-vs-game';
   const isNewMode = isQuestionOnly || isGameOnly;
   const is1v1 = isQuestionVsGame && gameState?.teams?.A?.length === 1 && gameState?.teams?.B?.length === 1;
-
-  // Determine if current user is a viewer
   const isViewer = user && room && !room.players.some(player => player.id === user.id);
 
-  // Get updated game state from server
+  useEffect(() => {
+    if (gameState?.phase === 'random-selection' && !autoStartAttempted && isNewMode) {
+      if ((isQuestionOnly && gameState.selectedTopic) || (isGameOnly && gameState.selectedGame)) {
+        console.log('🎯 Auto-starting new mode round');
+        setAutoStartAttempted(true);
+        
+        const timer = setTimeout(() => {
+          if (isQuestionOnly) {
+            startRound('questions', gameState.selectedTopic, null);
+          } else if (isGameOnly) {
+            startRound('games', null, gameState.selectedGame);
+          }
+        }, 1500);
+        
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [gameState?.phase, autoStartAttempted, isNewMode, isQuestionOnly, isGameOnly, gameState?.selectedTopic, gameState?.selectedGame]);
+
+  useEffect(() => {
+    if (gameState?.phase !== lastAutoStartPhase) {
+      setAutoStartAttempted(false);
+      setLastAutoStartPhase(gameState?.phase || '');
+    }
+  }, [gameState?.phase, lastAutoStartPhase]);
+
+
   useEffect(() => {
     if (socket && room?.code) {
       console.log('🎮 Requesting game state for room:', room.code);
@@ -475,50 +501,65 @@ const GamePhase = ({ room, gameState: initialGameState, onQuitGame }) => {
     );
   };
 
-  // Render different content based on game mode
-  const renderNewModeContent = () => {
+  
+
+ const renderNewModeContent = () => {
     if (!gameState) return null;
 
     switch (gameState.phase) {
       case 'random-selection':
-        if (isQuestionOnly) {
+        // ✅ FIXED: Show loading state while auto-starting, prevent multiple renders
+        if (!gameState.roundStarted) {
           return (
-            <div className="text-center">
-              <div className="bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl p-8 mb-8">
-                <h2 className="text-3xl font-bold text-white mb-4">🎯 Question Mode</h2>
-                <p className="text-purple-100 text-lg">
-                  Select a topic for this round's questions
-                </p>
+            <div className="text-center p-8">
+              <div className="text-6xl mb-4">
+                {isQuestionOnly ? '📝' : '🎮'}
               </div>
-              
-              <TopicSelection
-                winner={{ id: user?.id, name: user?.name }}
-                onTopicSelect={(topic) => startRound('questions', topic, null)}
-                user={user}
-                mode="winner-topic"
-              />
-            </div>
-          );
-        } else if (isGameOnly) {
-          return (
-            <div className="text-center">
-              <div className="bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl p-8 mb-8">
-                <h2 className="text-3xl font-bold text-white mb-4">🎮 Game Mode</h2>
-                <p className="text-purple-100 text-lg">
-                  Select a mini-game for this round
-                </p>
+              <h2 className="text-2xl font-bold text-white mb-4">
+                Starting {isQuestionOnly ? 'Question Round' : 'Mini-Game'}
+              </h2>
+              <p className="text-gray-300 mb-4">
+                {isQuestionOnly ? `Topic: ${gameState.selectedTopic}` : `Game: ${gameState.selectedGame}`}
+              </p>
+              <div className="inline-block bg-purple-500/20 border border-purple-500 rounded-lg px-4 py-2">
+                <span className="text-purple-400 font-bold">Loading...</span>
               </div>
-              
-              <GameSelection
-                winner={{ id: user?.id, name: user?.name }}
-                onGameSelect={(game) => startRound('games', null, game)}
-                user={user}
-                mode="winner-game"
-              />
             </div>
           );
         }
-        return null;
+        
+        // ✅ If round has started, fall through to the appropriate phase
+        if (isQuestionOnly || gameState.choice === 'questions') {
+          return (
+            <QuestionRound
+              topic={gameState.selectedTopic}
+              timeLeft={gameState.roundTimeLeft}
+              roundStarted={gameState.roundStarted}
+              onScoreSubmit={(score) => {
+                submitScore(score, 'question'); 
+                setUserScore(prev => prev + score);
+              }}
+              mode="individual"
+              team={null}
+            />
+          );
+        } else if (isGameOnly || gameState.choice === 'games') {
+          return (
+            <MiniGameRound
+              gameType={gameState.selectedGame || 'basketball'}
+              userScore={userScore}
+              timeLeft={gameState.roundTimeLeft}
+              roundStarted={gameState.roundStarted}
+              onScoreSubmit={(score) => {
+                submitScore(score, 'game'); 
+                setUserScore(prev => prev + score);
+              }}
+              mode="individual"
+              team={null}
+            />
+          );
+        }
+        return <GameLoading />;
 
       case 'question-round':
         return (
@@ -551,6 +592,39 @@ const GamePhase = ({ room, gameState: initialGameState, onQuitGame }) => {
           />
         );
 
+      case 'round-started':
+        if (isQuestionOnly || gameState.choice === 'questions') {
+          return (
+            <QuestionRound
+              topic={gameState.selectedTopic}
+              timeLeft={gameState.roundTimeLeft}
+              roundStarted={gameState.roundStarted}
+              onScoreSubmit={(score) => {
+                submitScore(score, 'question'); 
+                setUserScore(prev => prev + score);
+              }}
+              mode="individual"
+              team={null}
+            />
+          );
+        } else if (isGameOnly || gameState.choice === 'games') {
+          return (
+            <MiniGameRound
+              gameType={gameState.selectedGame || 'basketball'}
+              userScore={userScore}
+              timeLeft={gameState.roundTimeLeft}
+              roundStarted={gameState.roundStarted}
+              onScoreSubmit={(score) => {
+                submitScore(score, 'game'); 
+                setUserScore(prev => prev + score);
+              }}
+              mode="individual"
+              team={null}
+            />
+          );
+        }
+        return <GameLoading />;
+
       case 'round-completed':
         return (
           <RoundResults
@@ -563,7 +637,7 @@ const GamePhase = ({ room, gameState: initialGameState, onQuitGame }) => {
             onQuitGame={onQuitGame}
             mode="individual"
             gameMode={gameMode}
-            isFinal={gameState.gameEnded} // ✅ Pass if this is final game
+            isFinal={gameState.gameEnded}
           />
         );
 

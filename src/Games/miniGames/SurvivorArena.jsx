@@ -98,7 +98,7 @@ const SurvivorArena = ({ timeLeft, onScoreSubmit, userScore }) => {
 
     // Get maximum enemies based on time
     const getMaxEnemies = () => {
-      return timeLeft > 60 ? 3 : 8;
+      return timeLeft > 60 ? 3 : 5;
     };
 
     // Get spawn rate based on time

@@ -6,6 +6,7 @@ import { useAuth } from '../Context/AuthContext';
 import ViewerPanel from '../Components/ViewerPanel';
 import GameContentView from '../Components/GameContentView';
 import RealPlayerScreen from '../Components/RealPlayerScreen';
+import QuestionRound from '../Games/QuestionRound';
 
 const SpectatorPage = () => {
   const { roomCode } = useParams();

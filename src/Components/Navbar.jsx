@@ -1,12 +1,41 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
+import { useSocketListeners } from "../hooks/useSocketListeners.js"; 
 
 export default function Navbar() {
   const navigate = useNavigate();
   const { user, logout, loading } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  useSocketListeners();
+
+  const currentBalance = user?.coinBalance || 0;
+
+  // small visual flash when balance updates
+  const [balanceFlash, setBalanceFlash] = useState(false);
+  const prevBalanceRef = useRef(currentBalance);
+
+  useEffect(() => {
+    const prev = prevBalanceRef.current;
+    const curr = user?.coinBalance ?? 0;
+    if (prev !== undefined && prev !== null && curr !== prev) {
+      // trigger flash
+      setBalanceFlash(true);
+      const t = setTimeout(() => setBalanceFlash(false), 900);
+      return () => clearTimeout(t);
+    }
+    prevBalanceRef.current = curr;
+  }, [user?.coinBalance]);
+
+      useEffect(() => {
+    console.log("🔄 Navbar user updated:", { 
+          name: user?.name, 
+          coinBalance: user?.coinBalance,
+          hasUser: !!user 
+        });
+      }, [user]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -90,8 +119,10 @@ export default function Navbar() {
                 <p className="text-white font-semibold text-sm">
                   {user.name || 'User'}
                 </p>
-                <p className="text-gray-300 text-xs">
-                  {user.coinBalance || 0} coins
+                <p className="text-xs font-semibold">
+                  <span className={`inline-block text-yellow-400 transition-all duration-300 ${balanceFlash ? 'bg-green-400/30 ring-1 ring-green-300 rounded px-2' : ''}`} aria-live="polite">
+                    {currentBalance.toLocaleString()} coins
+                  </span>
                 </p>
               </div>
               
@@ -119,7 +150,7 @@ export default function Navbar() {
                       <p className="text-white font-semibold">{user.name || 'User'}</p>
                       <p className="text-gray-400 text-sm">{user.email}</p>
                       <p className="text-yellow-400 text-sm font-semibold">
-                        ⭐ {user.coinBalance || 0} coins
+                        ⭐ <span className={`inline-block transition-all duration-300 ${balanceFlash ? 'bg-green-400/30 ring-1 ring-green-300 rounded px-1' : ''}`}>{currentBalance.toLocaleString()} coins</span>
                       </p>
                     </div>
                   </div>
@@ -143,7 +174,7 @@ export default function Navbar() {
                     <span>Create Character</span>
                   </button>
 
-                  {/* Game Store Button - Added Here */}
+                  {/* Game Store Button */}
                   <button
                     onClick={() => { setDropdownOpen(false); navigate("/store"); }}
                     className="w-full text-left px-4 py-3 text-gray-300 hover:bg-purple-600 hover:text-white transition-all flex items-center space-x-3"

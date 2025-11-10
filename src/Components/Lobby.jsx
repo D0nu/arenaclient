@@ -12,8 +12,10 @@ import UserStatus from './LobbyComponents/UserStatus.jsx';
 import StatsFooter from './LobbyComponents/StatsFooter.jsx';
 import NotificationBanner from './LobbyComponents/NotificationBanner.jsx';
 import LoadingState from './LobbyComponents/LoadingState.jsx';
+import { useAudioManager } from '../hooks/useAudioManager';
 
 const Lobby = ({ onJoinGame, setCurrentView }) => {
+  useAudioManager('lobby'); 
   const navigate = useNavigate();
   const [showJoinPopup, setShowJoinPopup] = useState(false);
   const [wager, setWager] = useState(0);

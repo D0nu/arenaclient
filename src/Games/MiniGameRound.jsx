@@ -2,8 +2,8 @@ import React from 'react';
 import BasketballGame from './miniGames/Baketball.jsx';
 import DartGame from './miniGames/Dart.jsx';
 import SurvivorArena from './miniGames/SurvivorArena.jsx';
-import Conquest from './miniGames/Conquest.jsx';
-// Import other games as you create them:
+import EnhancedConquest from './miniGames/Conquest.jsx';
+import GemHunter from './miniGames/GameHunter.jsx';
 // import MemoryGame from './games/MemoryGame';
 // import TriviaGame from './games/TriviaGame';
 // import PuzzleGame from './games/PuzzleGame';
@@ -14,9 +14,8 @@ const MiniGameRound = ({ gameType, timeLeft, roundStarted, onScoreSubmit , userS
     'basketball': BasketballGame,
     'dart': DartGame,
     'survivor': SurvivorArena,
-    // Add more games as you create them:
-     'conquest' : Conquest,
-    // 'trivia': TriviaGame,
+     'conquest' : EnhancedConquest,
+     'Gem' : GemHunter,
     // 'puzzle': PuzzleGame,
   };
 

@@ -5,6 +5,11 @@ import { AuthProvider } from './Context/AuthContext.jsx';
 import { ThemeProvider } from './Context/ThemeContext.jsx';
 import { Buffer } from "buffer";
 import ErrorBoundary from './ErrorBoundary';
+import { GameProvider } from "./Context/GameContext";
+import { SocketProvider } from "./Context/SocketContext";
+import { SolanaProvider } from "./Context/SolanaContext";
+import { ArenaProvider } from "./Context/ArenaContext";
+import { AudioProvider } from "./Context/AudioContext";
 import './index.css'
 
 
@@ -15,7 +20,17 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <AuthProvider>
       <ThemeProvider>
         <ErrorBoundary>
-        <App />
+          <SolanaProvider>
+            <SocketProvider>
+              <GameProvider>
+                <ArenaProvider>
+                  <AudioProvider>
+                    <App />
+                  </AudioProvider>
+                </ArenaProvider>
+              </GameProvider>
+            </SocketProvider>
+          </SolanaProvider>
         </ ErrorBoundary>
       </ThemeProvider>
     </AuthProvider>

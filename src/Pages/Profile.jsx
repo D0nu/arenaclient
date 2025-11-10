@@ -2,13 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import ThemeToggle from "../Components/ThemeToggle";
-import SettingsModal from "../Components/SettingsModal";
 import { motion } from "framer-motion";
 
 export default function Profile() {
   const navigate = useNavigate();
   const { user, token, loading, logout, refreshUser } = useAuth();
-  const [showSettings, setShowSettings] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -98,7 +96,7 @@ export default function Profile() {
         {/* Buttons */}
         <div className="space-y-3">
           <button
-            onClick={() => setShowSettings(true)}
+            onClick={() => navigate("/settings")}
             className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 py-3 rounded-lg font-semibold hover:opacity-90 transition"
           >
             ⚙️ Settings
@@ -132,9 +130,7 @@ export default function Profile() {
         </div>
       </motion.div>
 
-      {/* Settings Modal */}
-      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
-
+    
       {/* Delete Account Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">

@@ -8,28 +8,51 @@ const GameRoomHeader = ({
   isRoomFull, 
   currentPlayer, 
   leaveRoom, 
-  closeRoom, // New prop for closing room
+  closeRoom,
   startGame, 
   toggleReady,
   copyRoomCode 
 }) => {
-  // Add safety check
-  if (!room) {
+  
+  // ✅ ADDED: Safety check and ensure proper state after game
+  if (!room || room.status === 'in-game') {
     return (
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border-2 border-green-500">
         <div className="text-center py-4">
           <div className="w-8 h-8 border-t-2 border-green-500 border-solid rounded-full animate-spin mx-auto mb-2"></div>
-          <p className="text-gray-400">Loading room...</p>
+          <p className="text-gray-400">Game in progress...</p>
         </div>
       </div>
     );
   }
 
-  // Ready button is disabled until room is full
-  const readyButtonDisabled = !isRoomFull || currentPlayer?.isReady;
+  // ✅ FIXED: Ready button should NEVER be disabled when player is ready (so they can unready)
+  // Only disable if room isn't full AND player isn't ready yet
+  const readyButtonDisabled = !isRoomFull && !currentPlayer?.isReady;
   
-  // Start game button is only enabled when room is full, all players ready, and user is owner
+  // ✅ KEEP ORIGINAL: Start button logic - trust the backend's canStartGame prop
   const startButtonDisabled = !canStartGame;
+
+  // ✅ FIXED: Better button text logic
+  const getReadyButtonText = () => {
+    if (!isRoomFull && !currentPlayer?.isReady) {
+      return '⏳ Wait for Players';
+    }
+    if (currentPlayer?.isReady) {
+      return '❌ Unready';
+    }
+    return '✅ Ready Up';
+  };
+
+  const getStartButtonText = () => {
+    if (!isRoomFull) {
+      return '⏳ Need More Players';
+    }
+    if (!canStartGame) {
+      return '⏳ Waiting for Ready...';
+    }
+    return '🚀 Start Game';
+  };
 
   return (
     <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border-2 border-green-500">
@@ -68,7 +91,7 @@ const GameRoomHeader = ({
           
           {isOwner ? (
             <>
-              {/* Owner's Ready Button - Only active when room is full */}
+              {/* ✅ FIXED: Owner's Ready/Unready Toggle Button - Always clickable when ready */}
               <button
                 onClick={toggleReady}
                 disabled={readyButtonDisabled}
@@ -76,15 +99,14 @@ const GameRoomHeader = ({
                   readyButtonDisabled 
                     ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
                     : currentPlayer?.isReady
-                    ? 'bg-green-600 text-white cursor-default'
+                    ? 'bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white'
                     : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white'
                 }`}
               >
-                {!isRoomFull ? 'Wait for Players' : 
-                 currentPlayer?.isReady ? '✅ Ready!' : '🎯 Get Ready'}
+                {getReadyButtonText()}
               </button>
               
-              {/* Owner's Start Game Button */}
+              {/* Owner's Start Game Button - TRUST BACKEND PROP */}
               <button
                 onClick={startGame}
                 disabled={startButtonDisabled}
@@ -94,11 +116,11 @@ const GameRoomHeader = ({
                     : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white' 
                 }`}
               >
-                {startButtonDisabled ? 'Waiting for Ready...' : '🚀 Start Game'}
+                {getStartButtonText()}
               </button>
             </>
           ) : (
-            // Non-owner ready button - Only active when room is full
+            // ✅ FIXED: Non-owner Ready/Unready Toggle Button - Always clickable when ready
             <button
               onClick={toggleReady}
               disabled={readyButtonDisabled}
@@ -106,12 +128,11 @@ const GameRoomHeader = ({
                 readyButtonDisabled 
                   ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
                   : currentPlayer?.isReady
-                  ? 'bg-green-600 text-white cursor-default'
+                  ? 'bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white'
                   : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white'
               }`}
             >
-              {!isRoomFull ? 'Waiting for Players...' : 
-               currentPlayer?.isReady ? '✅ Ready!' : '🎯 Get Ready'}
+              {getReadyButtonText()}
             </button>
           )}
         </div>

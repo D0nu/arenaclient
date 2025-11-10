@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 import Lobby from "../Components/Lobby";
 import GameRoom from "../Components/GameRoom";
+import { useAudioManager } from "../hooks/useAudioManager"; 
 
 export default function Home() {
   const [currentView, setCurrentView] = useState("lobby");
   const [gameSession, setGameSession] = useState(null);
+
+
+  useAudioManager();
 
   const handleJoinGame = (session) => {
     setGameSession(session);

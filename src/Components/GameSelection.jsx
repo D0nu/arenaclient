@@ -10,15 +10,15 @@ const GAME_OPTIONS = [
     color: "from-orange-500 to-red-500",
     borderColor: "border-orange-400"
   },
-  { 
-    value: "memory", 
-    label: "Memory Match", 
-    icon: "🧠", 
-    description: "Test your memory with card matching",
-    color: "from-purple-500 to-indigo-500",
-    borderColor: "border-purple-400",
-    comingSoon: true
-  },
+      {
+      value: "Gem",
+      label: "Gem Hunter",
+      icon: "💎",
+      description: "Collect gems, avoid traps, and become the ultimate treasure seeker",
+      color: "from-emerald-500 to-cyan-500",
+      borderColor: "border-emerald-400",
+      comingSoon: false
+    },
 { 
     value: "survivor", 
     label: "battle arena", 

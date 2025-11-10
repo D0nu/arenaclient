@@ -1,18 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const DartGame = ({ timeLeft = 180, roundStarted = true, onScoreSubmit }) => {
+const DartGame = ({ timeLeft , roundStarted = true, onScoreSubmit }) => {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const animationRef = useRef(null);
   
-  // Game state
+  
   const [score, setScore] = useState(0);
   const [isRunning, setIsRunning] = useState(true);
   const [darts, setDarts] = useState([]);
   const [targets, setTargets] = useState([]);
   const [floatingScores, setFloatingScores] = useState([]);
+  const timeLeftRef = useRef(timeLeft);
 
-  // Refs for game objects
+  
   const scaleRef = useRef(1);
   const lastTargetSpawnRef = useRef(0);
   const targetsRef = useRef([]);
@@ -36,7 +37,9 @@ const DartGame = ({ timeLeft = 180, roundStarted = true, onScoreSubmit }) => {
   const BASE_TARGET_SPEED = 80;
   const MAX_TARGETS = 3;
 
-  // Initialize game
+        
+
+
   useEffect(() => {
     if (!roundStarted) return;
 
@@ -80,6 +83,10 @@ const DartGame = ({ timeLeft = 180, roundStarted = true, onScoreSubmit }) => {
   useEffect(() => {
     targetsRef.current = targets;
   }, [targets]);
+
+  useEffect(() => {
+  timeLeftRef.current = timeLeft;
+}, [timeLeft]);
 
   // Keyboard controls
   useEffect(() => {
@@ -267,7 +274,7 @@ const DartGame = ({ timeLeft = 180, roundStarted = true, onScoreSubmit }) => {
             if (distance < dart.radius + target.radius) {
               hitTarget = true;
               hitTargetId = target.id;
-              handleTargetHit(target, newX, newY);
+              handleTargetHit(target, newX, newY, timeLeftRef.current);
               setTargets(prevTargets => 
                 prevTargets.map(t => 
                   t.id === target.id ? { ...t, hit: true } : t
@@ -301,13 +308,13 @@ const DartGame = ({ timeLeft = 180, roundStarted = true, onScoreSubmit }) => {
     );
   };
 
-  const handleTargetHit = (target, hitX, hitY) => {
+  const handleTargetHit = (target, hitX, hitY, timeLeft) => {
     // FIXED: -1 penalty points and proper +3 scoring when time < 60
     let points;
     if (target.isNegative) {
-      points = -1; // FIXED: Changed from -3 to -1
+      points = -2; // FIXED: Changed from -3 to -1
     } else {
-      points = timeLeft < 60 ? 3 : 2; // FIXED: Properly check time for +3 points
+      points = timeLeft > 60 ?  2 : 3; // FIXED: Properly check time for +3 points
     }
     
     setScore(prev => {

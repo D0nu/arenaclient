@@ -3,8 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { useSocket } from '../Context/SocketContext';
 import { useAuth } from '../Context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useAudioManager } from '../hooks/useAudioManager';
 
 const ViewGamesPage = () => {
+  useAudioManager();
   const [activeGames, setActiveGames] = useState([]);
   const [loading, setLoading] = useState(true);
 

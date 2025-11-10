@@ -1,6 +1,7 @@
-// AuthContext.jsx - Environment-aware base URL
-import React, { createContext, useContext, useEffect, useState } from "react";
+// AuthContext.jsx - Updated with proper refreshUser
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import axios from "axios";
+// REMOVE: import { useSocket } from "./SocketContext"; // No longer needed here
 
 const AuthContext = createContext();
 
@@ -37,6 +38,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  // REMOVE: const { socket } = useSocket(); // No socket dependency here
 
   // Debug effect
   useEffect(() => {
@@ -73,7 +75,53 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const fetchUser = async () => {
+  // ✅ PROPER refreshUser function using axios
+  const refreshUser = useCallback(async () => {
+    try {
+      console.log('🔄 Refreshing user data...');
+      const currentToken = token || getStoredToken();
+      
+      if (!currentToken) {
+        console.warn('❌ No token available for refresh');
+        return;
+      }
+
+      console.log('📡 Making request to:', `${axios.defaults.baseURL}/auth/me`);
+      
+      const { data } = await axios.get("/auth/me", {
+        headers: {
+          'Authorization': `Bearer ${currentToken}`
+        }
+      });
+      
+      console.log('✅ User data refreshed:', data.user);
+      
+      // Update user state
+      setUser(data.user);
+      
+      // Update token if a new one was provided
+      if (data.token) {
+        console.log('🔄 Updating token from refresh');
+        setToken(data.token);
+        storeToken(data.token);
+      }
+      
+      return data.user;
+    } catch (error) {
+      console.error('❌ Failed to refresh user:', error);
+      // If refresh fails, clear auth state
+      if (error.response?.status === 401) {
+        console.log('🚫 Unauthorized, clearing auth state');
+        setUser(null);
+        setToken(null);
+        clearStoredToken();
+      }
+      throw error;
+    }
+  }, [token]);
+
+  // ✅ Use useCallback to prevent infinite re-renders
+  const fetchUser = useCallback(async () => {
     try {
       console.log("🔄 Starting fetchUser...");
       console.log("📡 API Base URL:", axios.defaults.baseURL);
@@ -113,11 +161,13 @@ export function AuthProvider({ children }) {
       setLoading(false);
       console.log("🏁 fetchUser completed, loading:", false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchUser();
-  }, []);
+  }, [fetchUser]);
+
+  // REMOVED: Socket listeners moved to separate hook
 
   const login = async (email, password) => {
     console.log("🔐 Starting login...");
@@ -175,11 +225,19 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const updateUserBalance = (newBalance) => {
-    if (user) {
-      setUser(prev => ({ ...prev, coinBalance: newBalance }));
-    }
-  };
+      const updateUserBalance = useCallback((newBalance) => {
+        setUser(prev => {
+          if (!prev) return prev;
+          console.log("🔄 UPDATING BALANCE IN CONTEXT:", { 
+            from: prev.coinBalance, 
+            to: newBalance 
+          });
+          return { 
+            ...prev, 
+            coinBalance: newBalance 
+          };
+        });
+      }, []);
 
   const updateUserData = (newUserData) => {
     setUser(prev => ({ ...prev, ...newUserData }));
@@ -197,10 +255,10 @@ export function AuthProvider({ children }) {
         login,
         signup,
         logout,
-        refreshUser: fetchUser,
+        refreshUser, 
         updateUserBalance,
         updateUserData,
-        // ✅ Add baseURL for debugging
+        
         baseURL: axios.defaults.baseURL
       }}
     >
